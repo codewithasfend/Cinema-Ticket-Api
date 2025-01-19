@@ -31,11 +31,13 @@ namespace CinemaTicketApi.Controllers
         [HttpGet("by-user/{userId}")]
         public IActionResult GetReservationByUserId(int userId)
         {
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+
             var reservations = dbContext.Reservations
                                        .Where(r => r.UserId == userId)
                                        .Include(r => r.ReservationSeats)
                                        .ThenInclude(rs => rs.Seat)
-                                       .Include(r => r.Screening) 
+                                       .Include(r => r.Screening)
                                        .ThenInclude(s => s.Movie)
                                        .ToList();
 
@@ -46,8 +48,8 @@ namespace CinemaTicketApi.Controllers
                 Id = r.Id,
                 ReservationDate = r.ReservationDate,
                 NumberOfSeats = r.NumberofSeats,
-                MovieTitle = r.Screening.Movie.Title , 
-                MovieImageUrl = r.Screening.Movie.ImageUrl ,
+                MovieTitle = r.Screening.Movie.Title,
+                MovieImageUrl = $"{baseUrl}/{r.Screening.Movie.ImageUrl}",
                 Amount = r.Amount,
                 UserId = r.UserId,
                 ScreeningId = r.ScreeningId,
@@ -56,7 +58,7 @@ namespace CinemaTicketApi.Controllers
 
             return Ok(response);
 
-           // return Ok(reservations);
+            // return Ok(reservations);
         }
 
 
@@ -112,7 +114,7 @@ namespace CinemaTicketApi.Controllers
 
                 dbContext.Reservations.Add(reservation); // Add the reservation to the context
                 dbContext.SaveChanges(); // Save changes to the database
-                                      // Prepare the response object
+                                         // Prepare the response object
                 var response = new
                 {
                     MovieId = screening.Movie.Id,          // Assuming Movie entity has an Id property
@@ -124,9 +126,9 @@ namespace CinemaTicketApi.Controllers
 
                 // Return the custom response
                 return Ok(response);
-               
+
             }
-            catch 
+            catch
             {
                 return Conflict("Some seats were reserved by another user. Please try again."); // Return an error message
             }
