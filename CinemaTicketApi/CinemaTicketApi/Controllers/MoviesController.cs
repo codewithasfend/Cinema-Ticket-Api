@@ -24,8 +24,7 @@ namespace CinemaTicketApi.Controllers
         [HttpGet]
         public async Task<ActionResult<object>> GetAllMovies(string movieType)
         {
-            //var movies =  await dbContext.Movies.ToListAsync();
-            //return Ok(movies);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
 
 
             var moviesQuery = dbContext.Movies.AsQueryable();
@@ -52,8 +51,8 @@ namespace CinemaTicketApi.Controllers
             {
                 Id = m.Id,
                 Title = m.Title,
-                ImageUrl = m.ImageUrl,
-              
+                ImageUrl = $"{baseUrl}/{m.ImageUrl}"
+
             }).ToListAsync();
 
             return movies;
@@ -63,11 +62,27 @@ namespace CinemaTicketApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult> GetMovie(int id)
         {
-            var movie = await dbContext.Movies.FindAsync(id);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
+
+            var movie = await dbContext.Movies
+                .Where(m => m.Id == id)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Title = m.Title,
+                    Description = m.Description,
+                    ReleaseDate = m.ReleaseDate,
+                    Type = m.Type,
+                    Duration = m.Duration,
+                    ImageUrl = $"{baseUrl}/{m.ImageUrl}"
+                })
+                .FirstOrDefaultAsync();
+
             if (movie == null)
             {
                 return NotFound();
             }
+
             return Ok(movie);
         }
 
